@@ -46,7 +46,7 @@ REM DETECTA SE E PLAYLIST
 REM ==================================================
 
 echo.
-echo Verificando se o link e uma playlist...
+echo Verificando o link...
 echo.
 
 set "PLAYLIST_ID="
@@ -119,7 +119,7 @@ REM ==================================================
 :CHECK_CATEGORY
 
 echo.
-echo Verificando se e musica...
+echo Verificando novamente...
 echo.
 
 set "CATEGORY="
