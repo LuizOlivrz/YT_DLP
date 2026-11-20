@@ -4,7 +4,6 @@ export {};
 const args=Deno.args;
 function arg(n:string,d=""){const i=args.indexOf(n);return i<0?d:(args[i+1]??d);}
 const url=arg("--url"),ytdlp=arg("--ytdlp"),ffmpeg=arg("--ffmpeg"),outputRoot=arg("--output"),tempRoot=arg("--temp");
-const cookieMode=arg("--cookie-mode","NONE"),browser=arg("--browser","edge"),cookieFile=arg("--cookie-file");
 const ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 type Track={title:string;artist:string;album:string;duration:number;number:number;year?:string;sourceUrl?:string};
 const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
@@ -29,7 +28,6 @@ async function readYoutubeMusic(input:string){const ref=youtubeMusicUrl(input);i
 function norm(s:string){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
 function score(e:any,t:Track){const title=norm(String(e?.title||"")),artist=norm(String(e?.uploader||e?.channel||e?.artist||"")),wanted=norm(t.title),artists=norm(t.artist).split(" ").filter(x=>x.length>2);let n=title===wanted?8:(title.includes(wanted)||wanted.includes(title)?4:0);n+=artists.length?5*artists.filter(x=>artist.includes(x)).length/artists.length:0;const d=Number(e?.duration||0);if(t.duration>0&&d>0){const delta=Math.abs(d-t.duration);n+=delta<=5?5:delta<=12?3:delta<=25?1:-8;}if(/\b(lyrics|lyric video|karaoke|nightcore|sped up|slowed|8d audio)\b/i.test(String(e?.title||"")))n-=3;return n;}
 async function runYt(a:string[],capture=false){const command=new Deno.Command(ytdlp,{args:a,stdout:capture?"piped":"inherit",stderr:capture?"piped":"inherit"});if(capture){const r=await command.output();const out=new TextDecoder().decode(r.stdout);if(r.stderr.length)console.error(new TextDecoder().decode(r.stderr).trim());return{code:r.code,out};}const child=command.spawn();const status=await child.status;return{code:status.code,out:""};}
-function cookies(fallback=false){if(fallback)return[];if(cookieMode==="FILE"&&cookieFile)return["--cookies",cookieFile];if(cookieMode==="LOCAL")return["--cookies-from-browser",browser];return[];}
 function localDownloadDate(){return new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date()).replaceAll("/","-");}
 function filePart(value:string){return value.replace(/[<>:"/\\|?*\x00-\x1F]/g," ").replace(/[. ]+$/g,"").trim().slice(0,90)||"Desconhecido";}
 function lyricsScore(row:any,t:Track){const title=norm(String(row?.trackName||row?.name||"")),artist=norm(String(row?.artistName||"")),wantedTitle=norm(t.title),wantedArtist=norm(t.artist);if(!title||!artist||title!==wantedTitle)return-100;let score=10;if(artist===wantedArtist)score+=10;else if(artist.includes(wantedArtist)||wantedArtist.includes(artist))score+=6;else return-100;if(t.album&&row?.albumName){const a=norm(t.album),b=norm(String(row.albumName));score+=a===b?4:(a.includes(b)||b.includes(a)?2:-2);}const d=Number(row?.duration||0);if(t.duration>0&&d>0){const delta=Math.abs(d-t.duration);if(delta<=2)score+=5;else if(delta<=5)score+=2;else return-100;}return score;}
