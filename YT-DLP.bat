@@ -678,6 +678,7 @@ if "!BROWSER_CHOICE!"=="1" (
     set "LOCAL_BROWSER=chromium"
     set "BROWSER_PROFILE=%CHROMIUM_PROFILE%\Default"
 ) else if "!BROWSER_CHOICE!"=="4" (
+    set "BROWSER_PROFILE="
     if exist "%COOKIE_FILE%" (
         set "COOKIE_MODE=FILE"
         echo.
@@ -1150,6 +1151,8 @@ set "RESULT=!ERRORLEVEL!"
 goto FINISH
 
 
+:CHECK_LOCAL_DOWNLOAD_ERROR
+
 if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
     echo.
     echo [AVISO] O navegador local falhou. Tentando sem cookies...
@@ -1314,6 +1317,8 @@ set "RESULT=!ERRORLEVEL!"
 
 goto FINISH
 
+
+:CHECK_LOCAL_MUSIC_ERROR
 
 if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
     echo.
