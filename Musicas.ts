@@ -27,7 +27,7 @@ async function readDeezer(input:string){const ref=deezerUrl(input);if(!ref)throw
 function youtubeMusicUrl(s:string){try{const u=new URL(s);const host=u.hostname.toLowerCase();if(host!=="music.youtube.com")return null;const list=u.searchParams.get("list");const video=u.searchParams.get("v");const isPlaylist=/\/playlist/i.test(u.pathname)||(!video&&!!list);if(!isPlaylist&&!video)return null;return{kind:isPlaylist?"playlist":"track",url:s};}catch{return null;}}
 async function readYoutubeMusic(input:string){const ref=youtubeMusicUrl(input);if(!ref)throw new Error("Link do YouTube Music inválido.");const cmd=ref.kind==="playlist"?["--dump-single-json","--flat-playlist","--no-warnings","--skip-download",input]:["--dump-single-json","--no-warnings","--skip-download",input];const result=await runYt(cmd,true);if(result.code!==0)throw new Error("Não foi possível ler o conteúdo do YouTube Music: "+result.out.slice(-500));let p:any;try{p=JSON.parse(result.out);}catch{throw new Error("O yt-dlp retornou metadados inválidos do YouTube Music.");}const rows=ref.kind==="playlist"?(Array.isArray(p?.entries)?p.entries:[]):[p];const tracks=rows.map((x:any,i:number)=>{const id=String(x?.id||"");const source=String(x?.webpage_url||(id?"https://www.youtube.com/watch?v="+id:"")||x?.url||"");const title=String(x?.title||"").trim();if(!title||!source)return null;return{title,artist:String(x?.artist||x?.uploader||x?.channel||""),album:String(x?.album||p?.title||""),duration:Number(x?.duration||0),number:Number(x?.playlist_index||i+1),sourceUrl:source} as Track;}).filter((x:Track|null):x is Track=>!!x);if(!tracks.length)throw new Error("Nenhuma faixa encontrada no link do YouTube Music.");return{name:String(p?.title||p?.playlist_title||"YouTube Music"),tracks};}
 function norm(s:string){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
-function score(e:any,t:Track){const title=norm(String(e?.title||"")),artist=norm(String(e?.uploader||e?.channel||e?.artist||"")),wanted=norm(t.title),artistNames=t.artist.split(/,|&| feat\\.? | ft\\.? /i).map(norm).filter(x=>x.length>2);let n=title===wanted?10:(title.includes(wanted)||wanted.includes(title)?6:0);const matched=artistNames.filter(a=>artist.includes(a)||a.includes(artist));n+=artistNames.length?Math.min(6,matched.length*3):0;const d=Number(e?.duration||0);if(t.duration>0&&d>0){const delta=Math.abs(d-t.duration);n+=delta<=5?5:delta<=12?3:delta<=25?1:-8;}if(/\\b(lyrics|lyric video|karaoke|nightcore|sped up|slowed|8d audio)\\b/i.test(String(e?.title||"")))n-=3;return n;}
+function score(e:any,t:Track){const title=norm(String(e?.title||"")),artist=norm(String(e?.uploader||e?.channel||e?.artist||"")),wanted=norm(t.title),artistNames=t.artist.split(/,|&| feat\.? | ft\.? /i).map(norm).filter(x=>x.length>2);let n=title===wanted?10:(title.includes(wanted)||wanted.includes(title)?6:0);const matched=artistNames.filter(a=>artist.includes(a)||a.includes(artist));n+=artistNames.length?Math.min(6,matched.length*3):0;const d=Number(e?.duration||0);if(t.duration>0&&d>0){const delta=Math.abs(d-t.duration);n+=delta<=5?5:delta<=12?3:delta<=25?1:-8;}if(/\b(lyrics|lyric video|karaoke|nightcore|sped up|slowed|8d audio)\b/i.test(String(e?.title||"")))n-=3;return n;}
 async function runYt(a:string[],capture=false){const command=new Deno.Command(ytdlp,{args:a,stdout:capture?"piped":"inherit",stderr:capture?"piped":"inherit"});if(capture){const r=await command.output();const out=new TextDecoder().decode(r.stdout);if(r.stderr.length)console.error(new TextDecoder().decode(r.stderr).trim());return{code:r.code,out};}const child=command.spawn();const status=await child.status;return{code:status.code,out:""};}
 function localDownloadDate(){return new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date()).replaceAll("/","-");}
 function filePart(value:string){return value.replace(/[<>:"/\\|?*\x00-\x1F]/g," ").replace(/[. ]+$/g,"").trim().slice(0,90)||"Desconhecido";}
@@ -66,7 +66,8 @@ async function download(name:string,tracks:Track[]){
     const t=tracks[i],label=(t.artist?t.artist+" - ":"")+t.title;console.log("\n["+(i+1)+"/"+tracks.length+"] "+label);
     let video=String(t.sourceUrl||"");
     if(!video){
-      const artistParts=t.artist.split(/,|&| feat\\.? | ft\\.? /i).map(x=>x.trim()).filter(Boolean);\n      const queries=[(t.artist+" "+t.title).trim(),(t.title+" "+t.artist).trim(),...(artistParts.slice(0,3).map(a=>(a+" "+t.title).trim())),t.title].filter((q,i,a)=>q&&a.indexOf(q)===i);
+      const artistParts=t.artist.split(/,|&| feat\.? | ft\.? /i).map(x=>x.trim()).filter(Boolean);
+      const queries=[(t.artist+" "+t.title).trim(),(t.title+" "+t.artist).trim(),...(artistParts.slice(0,3).map(a=>(a+" "+t.title).trim())),t.title].filter((q,i,a)=>q&&a.indexOf(q)===i);
       const found=new Map<string,any>();
       for(const query of queries){
         const musicSearch=new URL("https://music.youtube.com/search");
@@ -92,7 +93,8 @@ async function download(name:string,tracks:Track[]){
       if(s<8||!titleMatch||!video){failed.push(label+": nenhum resultado confiável (melhor: "+String(best?.title||"sem título")+")");console.log("  [IGNORADA] Resultado não confiável.");continue;}
     }
     const date=localDownloadDate(),filename=filePart(t.title)+"-"+filePart(t.artist||"Artista desconhecido")+"_"+date,outputPath=folder+"\\"+filename+".mp3",template=filename+".%(ext)s";
-    const downloadArgs=["--no-playlist","--ffmpeg-location",ffmpeg,"-f","bestaudio/best","--extract-audio","--audio-format","mp3","--audio-quality","0","--embed-metadata","--windows-filenames","--no-overwrites","--paths","home:"+folder,"--paths","temp:"+tempRoot];\n    if(t.sourceUrl)downloadArgs.push("--embed-thumbnail","--convert-thumbnails","jpg");
+    const downloadArgs=["--no-playlist","--ffmpeg-location",ffmpeg,"-f","bestaudio/best","--extract-audio","--audio-format","mp3","--audio-quality","0","--embed-metadata","--windows-filenames","--no-overwrites","--paths","home:"+folder,"--paths","temp:"+tempRoot];
+    if(t.sourceUrl)downloadArgs.push("--embed-thumbnail","--convert-thumbnails","jpg");
     downloadArgs.push("-o",template,"--",video);
     let result;try{result=await runYt(downloadArgs,false);}catch(e){failed.push(label+": "+String(e));continue;}
     if(result.code!==0){failed.push(label+": erro no download (código "+result.code+")");continue;}
@@ -106,7 +108,7 @@ async function download(name:string,tracks:Track[]){
       else{await tagMp3(outputPath,t,"",coverPath);console.log("  [AVISO] Letra não encontrada com correspondência confiável; tags ID3 atualizadas.");}
       if(coverPath){try{await Deno.remove(coverPath);}catch{}console.log("  [OK] Capa quadrada do álbum incorporada.");}
       else if(t.sourceUrl)console.log("  [OK] Capa original do YouTube Music mantida no MP3.");
-      else console.log("  [AVISO] Sem capa de álbum disponível; miniatura do resultado mantida.");
+      else console.log("  [AVISO] Nenhuma capa de álbum disponível no serviço de origem.");
     }catch(e){failed.push(label+": pós-processamento: "+String(e));console.log("  [ERRO] "+String(e));}
     await sleep(350);
   }
