@@ -998,9 +998,9 @@ if /I "!OUTPUT_MODE!"=="PLAYLIST" (
 )
 
 if /I "!VIDEO_QUALITY!"=="best" (
-    set "VIDEO_FORMAT=-f bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4][vcodec^=avc1]"
+    set "VIDEO_FORMAT=-f bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1]+bestaudio/bestvideo[vcodec!*=av01]+bestaudio/best[vcodec!*=av01]"
 ) else (
-    set "VIDEO_FORMAT=-f bestvideo[ext=mp4][vcodec^=avc1][height^<=!VIDEO_QUALITY!]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4][vcodec^=avc1][height^<=!VIDEO_QUALITY!]"
+    set "VIDEO_FORMAT=-f bestvideo[vcodec^=avc1][height^<=!VIDEO_QUALITY!]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1][height^<=!VIDEO_QUALITY!]+bestaudio/bestvideo[vcodec!*=av01][height^<=!VIDEO_QUALITY!]+bestaudio/best[vcodec!*=av01][height^<=!VIDEO_QUALITY!]"
 )
 
 
