@@ -1423,9 +1423,9 @@ if not "%RESULT%"=="0" if not "%RESULT%"=="2" if defined VIDEO_FORMAT (
     echo.
     echo [DIAGNOSTICO] Consultando os formatos disponibilizados pelo YouTube...
     echo.
-    "%YTDLP%" %PLAYLIST% --list-formats -- "%URL%" >"%TEMP_YTDLP%\\available_formats.txt" 2>&1
-    if exist "%TEMP_YTDLP%\\available_formats.txt" (
-        type "%TEMP_YTDLP%\\available_formats.txt"
+    "%YTDLP%" %PLAYLIST% --list-formats -- "%URL%" >"%TEMP_YTDLP%\available_formats.txt" 2>&1
+    if exist "%TEMP_YTDLP%\available_formats.txt" (
+        type "%TEMP_YTDLP%\available_formats.txt"
     )
     echo.
     echo [DIAGNOSTICO] Fim da lista de formatos.
