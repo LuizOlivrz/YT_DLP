@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "strict": false
+  },
+  "fmt": {
+    "lineWidth": 120,
+    "semi": true,
+    "indentWidth": 2
+  }
+}
