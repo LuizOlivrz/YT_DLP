@@ -703,6 +703,13 @@ if not defined URL (
 )
 
 
+REM Links musicais nao precisam de cookies nem de leitura do navegador.
+if /I not "!URL:spotify.com=!"=="!URL!" goto MUSICAL_LINKS
+if /I not "!URL:music.apple.com=!"=="!URL!" goto MUSICAL_LINKS
+if /I not "!URL:deezer.com=!"=="!URL!" goto MUSICAL_LINKS
+if /I not "!URL:music.youtube.com=!"=="!URL!" goto MUSICAL_LINKS
+
+
 REM ============================================================
 REM CONFIGURA COOKIES
 REM ============================================================
@@ -781,6 +788,10 @@ if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PRO
     echo Perfil: "!BROWSER_PROFILE!"
 )
 
+
+:MUSICAL_LINKS
+set "COOKIE_MODE=NONE"
+set "LOCAL_BROWSER=edge"
 
 REM ============================================================
 REM LINKS DE SERVICOS MUSICAIS (SPOTIFY / APPLE MUSIC / DEEZER / YOUTUBE MUSIC)
