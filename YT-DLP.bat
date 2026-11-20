@@ -48,15 +48,16 @@ set "FFPROBE=%FFMPEG_BIN%\ffprobe.exe"
 REM Arquivo usado para controlar verificacao do FFmpeg
 set "FFMPEG_CHECK=%TOOLS%\ffmpeg_update_check.txt"
 
-REM Brave Portable
+REM Perfis dos navegadores suportados
 set "BRAVE_ROOT=E:\Universal (Z)\Programas\brave-portable\app"
 set "BRAVE_PROFILE=%BRAVE_ROOT%\data\Default"
+set "EDGE_PROFILE=%LOCALAPPDATA%\Microsoft\Edge\User Data"
+set "CHROME_PROFILE=%LOCALAPPDATA%\Google\Chrome\User Data"
+set "CHROMIUM_PROFILE=%LOCALAPPDATA%\Chromium\User Data"
 
-REM Navegador local (Chrome / Edge / Chromium)
-set "LOCAL_BROWSER="
-if exist "%LOCALAPPDATA%\Google\Chrome\User Data\Default" set "LOCAL_BROWSER=chrome"
-if not defined LOCAL_BROWSER if exist "%LOCALAPPDATA%\Microsoft\Edge\User Data\Default" set "LOCAL_BROWSER=edge"
-if not defined LOCAL_BROWSER if exist "%LOCALAPPDATA%\Chromium\User Data\Default" set "LOCAL_BROWSER=chromium"
+REM Edge e o navegador preferencial; a escolha pode ser alterada no menu.
+set "LOCAL_BROWSER=edge"
+set "BROWSER_PROFILE=%EDGE_PROFILE%\Default"
 
 REM Cookies alternativos
 set "COOKIE_DIR=%BASE%cookies"
@@ -655,33 +656,78 @@ echo ============================================================
 echo.
 
 set "COOKIE_MODE=NONE"
+set "LOCAL_BROWSER=edge"
+set "BROWSER_PROFILE=%EDGE_PROFILE%\Default"
 
-if exist "%COOKIE_FILE%" (
+echo Selecione a fonte de cookies:
+echo.
+echo [1] Microsoft Edge (padrao)
+echo [2] Google Chrome
+echo [3] Chromium
+echo [4] Brave Portable
+echo [5] Arquivo cookies\youtube.txt
+echo [6] Nao usar cookies
+echo.
+set "BROWSER_CHOICE=1"
+set /p "BROWSER_CHOICE=Opcao [1-6] (Enter = Edge): "
 
-    echo [OK] Arquivo de cookies encontrado.
-    echo.
-    echo "%COOKIE_FILE%"
-    echo.
-    set "COOKIE_MODE=FILE"
-
-) else if exist "%BRAVE_PROFILE%" (
-
-    echo [OK] Brave Portable encontrado.
-    echo.
-    echo Perfil:
-    echo "%BRAVE_PROFILE%"
-    echo.
-    echo O Brave sera usado para obter os cookies.
-    echo.
-    set "COOKIE_MODE=BRAVE"
-
+if "!BROWSER_CHOICE!"=="1" (
+    set "LOCAL_BROWSER=edge"
+    set "BROWSER_PROFILE=%EDGE_PROFILE%\Default"
+) else if "!BROWSER_CHOICE!"=="2" (
+    set "LOCAL_BROWSER=chrome"
+    set "BROWSER_PROFILE=%CHROME_PROFILE%\Default"
+) else if "!BROWSER_CHOICE!"=="3" (
+    set "LOCAL_BROWSER=chromium"
+    set "BROWSER_PROFILE=%CHROMIUM_PROFILE%\Default"
+) else if "!BROWSER_CHOICE!"=="4" (
+    set "LOCAL_BROWSER=brave:%BRAVE_PROFILE%"
+    set "BROWSER_PROFILE=%BRAVE_PROFILE%"
+) else if "!BROWSER_CHOICE!"=="5" (
+    if exist "%COOKIE_FILE%" (
+        set "COOKIE_MODE=FILE"
+        echo.
+        echo [OK] Usando arquivo de cookies.
+    ) else (
+        echo.
+        echo [AVISO] Arquivo cookies\youtube.txt nao encontrado.
+        echo O download seguira sem cookies.
+    )
+) else if "!BROWSER_CHOICE!"=="6" (
+    set "COOKIE_MODE=NONE"
 ) else (
-
-    echo [AVISO] Nenhuma fonte de cookies encontrada.
     echo.
-    echo O download continuara sem cookies.
-    echo.
+    echo [AVISO] Opcao invalida. Usando Microsoft Edge.
+    set "LOCAL_BROWSER=edge"
+    set "BROWSER_PROFILE=%EDGE_PROFILE%\Default"
+)
 
+if "!BROWSER_CHOICE!"=="1" if not exist "%EDGE_PROFILE%\Default" (
+    echo.
+    echo [AVISO] Perfil do Edge nao encontrado. Tentando sem cookies.
+    set "COOKIE_MODE=NONE"
+)
+if "!BROWSER_CHOICE!"=="2" if not exist "%CHROME_PROFILE%\Default" (
+    echo.
+    echo [AVISO] Perfil do Chrome nao encontrado. Tentando sem cookies.
+    set "COOKIE_MODE=NONE"
+)
+if "!BROWSER_CHOICE!"=="3" if not exist "%CHROMIUM_PROFILE%\Default" (
+    echo.
+    echo [AVISO] Perfil do Chromium nao encontrado. Tentando sem cookies.
+    set "COOKIE_MODE=NONE"
+)
+if "!BROWSER_CHOICE!"=="4" if not exist "%BRAVE_PROFILE%" (
+    echo.
+    echo [AVISO] Perfil do Brave Portable nao encontrado. Tentando sem cookies.
+    set "COOKIE_MODE=NONE"
+)
+
+if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="6" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PROFILE!" (
+    set "COOKIE_MODE=LOCAL"
+    echo.
+    echo [OK] Navegador selecionado: !LOCAL_BROWSER!
+    echo Perfil: "!BROWSER_PROFILE!"
 )
 
 
