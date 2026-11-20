@@ -16,7 +16,7 @@ REM - Mantem FFmpeg local
 REM - Atualiza yt-dlp automaticamente
 REM - Verifica atualizacao do FFmpeg
 REM - Suporta cookies.txt
-REM - Tenta usar Brave Portable
+REM - Permite selecionar o navegador para obter cookies
 REM - Fallback automatico sem cookies
 REM - Detecta playlist pelo parametro "list="
 REM - Permite playlist inteira ou video individual
