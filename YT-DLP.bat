@@ -837,7 +837,7 @@ if not exist "%DENO%" (
     goto FINISH
 )
 
-"%DENO%" run --allow-net=spotify.com,open.spotify.com,music.apple.com,amp-api.music.apple.com,api.deezer.com,music.youtube.com,youtube.com,www.youtube.com,lrclib.net --allow-run --allow-read --allow-write "%BASE%Musicas.ts" ^
+"%DENO%" run --allow-net=spotify.com,open.spotify.com,scdn.co,spotifycdn.com,*.spotifycdn.com,music.apple.com,amp-api.music.apple.com,mzstatic.com,api.deezer.com,dzcdn.net,music.youtube.com,youtube.com,www.youtube.com,lrclib.net --allow-run --allow-read --allow-write "%BASE%Musicas.ts" ^
     --url "!URL!" ^
     --ytdlp "%YTDLP%" ^
     --ffmpeg "%FFMPEG_BIN%" ^
