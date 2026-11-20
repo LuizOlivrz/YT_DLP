@@ -34,7 +34,30 @@ function lyricsScore(row:any,t:Track){const title=norm(String(row?.trackName||ro
 async function findLyrics(t:Track){if(!t.artist)return null;const base="https://lrclib.net/api/";const headers={"User-Agent":"YT-DLP Downloader/1.0 (https://github.com/LuizOlivrz/YT_DLP)"};const exact=new URLSearchParams({track_name:t.title,artist_name:t.artist});if(t.album)exact.set("album_name",t.album);if(t.duration>0&&t.duration<=3600)exact.set("duration",String(t.duration));try{const r=await fetch(base+"get?"+exact,{headers,signal:AbortSignal.timeout(20000)});if(r.ok){const row=await r.json();if(lyricsScore(row,t)>=16)return row;}else if(r.status!==404)console.log("  [AVISO] LRCLIB respondeu HTTP "+r.status+".");}catch(e){console.log("  [AVISO] Consulta exata ao LRCLIB falhou: "+String(e));}
   try{await sleep(300);const query=new URLSearchParams({track_name:t.title,artist_name:t.artist});if(t.album)query.set("album_name",t.album);const r=await fetch(base+"search?"+query,{headers,signal:AbortSignal.timeout(20000)});if(!r.ok){console.log("  [AVISO] Pesquisa LRCLIB respondeu HTTP "+r.status+".");return null;}const rows=await r.json();if(!Array.isArray(rows))return null;rows.sort((a:any,b:any)=>lyricsScore(b,t)-lyricsScore(a,t));const best=rows[0];return best&&lyricsScore(best,t)>=16?best:null;}catch(e){console.log("  [AVISO] Não foi possível consultar letras no LRCLIB: "+String(e));return null;}}
 function lyricsText(row:any){const plain=String(row?.plainLyrics||"").trim();if(plain)return plain;const synced=String(row?.syncedLyrics||"").trim();return synced.replace(/^\s*\[(?:\d{2}:){1,2}\d{2}(?:[.:]\d{2,3})?\]\s*/gm,"").trim();}
-async function tagMp3(path:string,t:Track,lyrics:string){const exe=ffmpeg.replace(/[\\/]+$/,"")+"\\ffmpeg.exe",tmp=path+".tagged.mp3";const metadata=["-y","-i",path,"-map","0","-c","copy","-id3v2_version","3","-metadata","title="+t.title,"-metadata","artist="+t.artist,"-metadata","album="+t.album,"-metadata","album_artist="+t.artist,"-metadata","date="+(t.year||""),"-metadata","track="+String(t.number),"-metadata","lyrics="+lyrics,tmp];const command=new Deno.Command(exe,{args:metadata,stdout:"null",stderr:"piped"});const result=await command.output();if(result.code!==0){try{await Deno.remove(tmp);}catch{}throw new Error("FFmpeg não conseguiu incorporar as tags e a letra: "+new TextDecoder().decode(result.stderr).slice(-700));}await Deno.remove(path);await Deno.rename(tmp,path);}
+async function prepareCover(url:string,path:string){
+  if(!url)return null;
+  try{
+    const u=new URL(url);if(u.protocol!=="https:"&&u.protocol!=="http:")return null;
+    const response=await fetch(u,{headers:{"User-Agent":ua},signal:AbortSignal.timeout(20000)});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const source=path+".source";await Deno.writeFile(source,new Uint8Array(await response.arrayBuffer()));
+    const exe=ffmpeg.replace(/[\\/]+$/,"")+"\\ffmpeg.exe";
+    const result=await new Deno.Command(exe,{args:["-y","-i",source,"-vf","scale=600:600:force_original_aspect_ratio=increase,crop=600:600","-frames:v","1","-q:v","2",path],stdout:"null",stderr:"piped"}).output();
+    try{await Deno.remove(source);}catch{}
+    if(result.code!==0)throw new Error(new TextDecoder().decode(result.stderr).slice(-300));
+    return path;
+  }catch(e){console.log("  [AVISO] Não foi possível obter a capa do álbum: "+String(e));return null;}
+}
+async function tagMp3(path:string,t:Track,lyrics:string,coverPath:string|null=null){
+  const exe=ffmpeg.replace(/[\\/]+$/,"")+"\\ffmpeg.exe",tmp=path+".tagged.mp3";
+  const metadata=coverPath
+    ?["-y","-i",path,"-i",coverPath,"-map","0:a:0","-map","1:v:0","-c:a","copy","-c:v","mjpeg","-disposition:v:0","attached_pic"]
+    :["-y","-i",path,"-map","0","-c","copy"];
+  metadata.push("-id3v2_version","3","-metadata","title="+t.title,"-metadata","artist="+t.artist,"-metadata","album="+t.album,"-metadata","album_artist="+t.artist,"-metadata","date="+(t.year||""),"-metadata","track="+String(t.number),"-metadata","lyrics="+lyrics,tmp);
+  const command=new Deno.Command(exe,{args:metadata,stdout:"null",stderr:"piped"});const result=await command.output();
+  if(result.code!==0){try{await Deno.remove(tmp);}catch{}throw new Error("FFmpeg não conseguiu incorporar as tags e a letra: "+new TextDecoder().decode(result.stderr).slice(-700));}
+  await Deno.remove(path);await Deno.rename(tmp,path);
+}
 async function download(name:string,tracks:Track[]){
   const folder=outputRoot;await Deno.mkdir(folder,{recursive:true});await Deno.mkdir(tempRoot,{recursive:true});const failed:string[]=[];
   console.log("\nLista: "+name+"\nFaixas: "+tracks.length+"\nDestino: "+folder+"\n");
@@ -42,19 +65,22 @@ async function download(name:string,tracks:Track[]){
     const t=tracks[i],label=(t.artist?t.artist+" - ":"")+t.title;console.log("\n["+(i+1)+"/"+tracks.length+"] "+label);
     let video=String(t.sourceUrl||"");
     if(!video){
-      const searchArgs=["--dump-single-json","--no-warnings","--skip-download","ytsearch5:"+(t.artist+" "+t.title).trim()];
-      let search;try{search=await runYt(searchArgs,true);}catch(e){failed.push(label+": "+String(e));continue;}
-      if(search.code!==0){failed.push(label+": falha na pesquisa");continue;}
-      let p:any;try{p=JSON.parse(search.out);}catch{failed.push(label+": resposta de pesquisa inválida");continue;}
-      const entries=Array.isArray(p?.entries)?p.entries.filter(Boolean):[];
+      const queries=[(t.artist+" "+t.title).trim(),(t.title+" "+t.artist).trim(),t.title];
+      const found=new Map<string,any>();
+      for(const query of queries){
+        let search;try{search=await runYt(["--dump-single-json","--no-warnings","--skip-download","ytsearch10:"+query],true);}catch(e){console.log("  [AVISO] Pesquisa alternativa falhou: "+String(e));continue;}
+        if(search.code!==0)continue;
+        try{const p=JSON.parse(search.out);for(const entry of(Array.isArray(p?.entries)?p.entries:[])){if(!entry)continue;const key=String(entry.id||entry.webpage_url||entry.url||"");if(key&&!found.has(key))found.set(key,entry);}}catch{}
+        if([...found.values()].some((entry:any)=>score(entry,t)>=15))break;
+      }
+      const entries=[...found.values()];
       if(!entries.length){failed.push(label+": não encontrada");console.log("  [NÃO ENCONTRADA]");continue;}
-      entries.sort((a:any,b:any)=>score(b,t)-score(a,t));const best=entries[0],s=score(best,t),bestTitle=norm(String(best?.title||"")),wantedTitle=norm(t.title),titleMatch=bestTitle===wantedTitle||bestTitle.includes(wantedTitle)||wantedTitle.includes(bestTitle);
+      entries.sort((a:any,b:any)=>score(b,t)-score(a,t));const best=entries[0],s=score(best,t),bestTitle=norm(String(best?.title||"")),wantedTitle=norm(t.title),titleMatch=bestTitle===wantedTitle||bestTitle.includes(wantedTitle);
       video=String(best?.webpage_url||best?.url||"");
-      if(s<6||!titleMatch||!video){failed.push(label+": nenhum resultado confiável (melhor: "+String(best?.title||"sem título")+")");console.log("  [IGNORADA] Resultado não confiável.");continue;}
+      if(s<8||!titleMatch||!video){failed.push(label+": nenhum resultado confiável (melhor: "+String(best?.title||"sem título")+")");console.log("  [IGNORADA] Resultado não confiável.");continue;}
     }
     const date=localDownloadDate(),filename=filePart(t.title)+"-"+filePart(t.artist||"Artista desconhecido")+"_"+date,outputPath=folder+"\\"+filename+".mp3",template=filename+".%(ext)s";
-    const downloadArgs=["--no-playlist","--ffmpeg-location",ffmpeg,"-f","bestaudio/best","--extract-audio","--audio-format","mp3","--audio-quality","0","--embed-metadata","--embed-thumbnail","--convert-thumbnails","jpg","--windows-filenames","--no-overwrites","--paths","home:"+folder,"--paths","temp:"+tempRoot,"--parse-metadata","title:%(meta_title)s","--replace-in-metadata","meta_title",".*",t.title,"--parse-metadata","title:%(meta_artist)s","--replace-in-metadata","meta_artist",".*",t.artist,"--parse-metadata","title:%(meta_album)s","--replace-in-metadata","meta_album",".*",t.album,"--parse-metadata","title:%(meta_album_artist)s","--replace-in-metadata","meta_album_artist",".*",t.artist,"--parse-metadata","title:%(meta_track)s","--replace-in-metadata","meta_track",".*",String(t.number)];
-    if(t.year)downloadArgs.push("--parse-metadata","title:%(meta_date)s","--replace-in-metadata","meta_date",".*",t.year);
+    const downloadArgs=["--no-playlist","--ffmpeg-location",ffmpeg,"-f","bestaudio/best","--extract-audio","--audio-format","mp3","--audio-quality","0","--embed-metadata","--embed-thumbnail","--convert-thumbnails","jpg","--windows-filenames","--no-overwrites","--paths","home:"+folder,"--paths","temp:"+tempRoot];
     downloadArgs.push("-o",template,"--",video);
     let result;try{result=await runYt(downloadArgs,false);}catch(e){failed.push(label+": "+String(e));continue;}
     if(result.code!==0){failed.push(label+": erro no download (código "+result.code+")");continue;}
@@ -63,9 +89,12 @@ async function download(name:string,tracks:Track[]){
       console.log("  [OK] Áudio baixado na melhor qualidade disponível.");
       console.log("  Consultando letra no LRCLIB...");
       const lyricRecord=await findLyrics(t),lyric=lyricRecord?lyricsText(lyricRecord):"";
-      if(lyric){await tagMp3(outputPath,t,lyric);console.log("  [OK] Tags ID3 e letra incorporadas.");}
-      else{await tagMp3(outputPath,t,"");console.log("  [AVISO] Letra não encontrada com correspondência confiável; tags ID3 atualizadas.");}
-      console.log("  [OK] Capa original do YouTube mantida no MP3.");
+      const coverPath=t.sourceUrl?null:await prepareCover(t.coverUrl,tempRoot+"\\"+filePart(t.title)+".cover.jpg");
+      if(lyric){await tagMp3(outputPath,t,lyric,coverPath);console.log("  [OK] Tags ID3 e letra incorporadas.");}
+      else{await tagMp3(outputPath,t,"",coverPath);console.log("  [AVISO] Letra não encontrada com correspondência confiável; tags ID3 atualizadas.");}
+      if(coverPath){try{await Deno.remove(coverPath);}catch{}console.log("  [OK] Capa quadrada do álbum incorporada.");}
+      else if(t.sourceUrl)console.log("  [OK] Capa original do YouTube Music mantida no MP3.");
+      else console.log("  [AVISO] Sem capa de álbum disponível; miniatura do resultado mantida.");
     }catch(e){failed.push(label+": pós-processamento: "+String(e));console.log("  [ERRO] "+String(e));}
     await sleep(350);
   }
