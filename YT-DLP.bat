@@ -153,6 +153,17 @@ if !FREE_MB! LSS 300 (
 )
 
 
+REM Cria o destino unico para todos os downloads.
+if not exist "%OUTPUT_ROOT%" mkdir "%OUTPUT_ROOT%" >nul 2>&1
+
+if not exist "%OUTPUT_ROOT%" (
+    echo [ERRO] Nao foi possivel criar a pasta de downloads:
+    echo "%OUTPUT_ROOT%"
+    pause
+    exit /b 1
+)
+
+
 REM ============================================================
 REM VERIFICA / INSTALA YT-DLP
 REM ============================================================
