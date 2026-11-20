@@ -1044,9 +1044,9 @@ if /I "!OUTPUT_MODE!"=="PLAYLIST" (
 )
 
 if /I "!VIDEO_QUALITY!"=="best" (
-    set "VIDEO_FORMAT=-f bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1]+bestaudio/bestvideo[vcodec!*=av01]+bestaudio/best[vcodec!*=av01]"
+    set "VIDEO_FORMAT=-f bv*[vcodec^=avc1]+ba/b[vcodec^=avc1]/bv*[vcodec!*=av01]+ba/b[vcodec!*=av01]"
 ) else (
-    set "VIDEO_FORMAT=-f bestvideo[vcodec^=avc1][height^<=!VIDEO_QUALITY!]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1][height^<=!VIDEO_QUALITY!]+bestaudio/bestvideo[vcodec!*=av01][height^<=!VIDEO_QUALITY!]+bestaudio/best[vcodec!*=av01][height^<=!VIDEO_QUALITY!]"
+    set "VIDEO_FORMAT=-f bv*[vcodec^=avc1][height^<=!VIDEO_QUALITY!]+ba/b[vcodec^=avc1][height^<=!VIDEO_QUALITY!]/bv*[vcodec!*=av01][height^<=!VIDEO_QUALITY!]+ba/b[vcodec!*=av01][height^<=!VIDEO_QUALITY!]"
 )
 
 
@@ -1414,6 +1414,23 @@ REM FINALIZACAO
 REM ============================================================
 
 :FINISH
+
+REM ============================================================
+REM DIAGNOSTICO DE FORMATOS QUANDO O DOWNLOAD DE VIDEO FALHAR
+REM ============================================================
+
+if not "%RESULT%"=="0" if not "%RESULT%"=="2" if defined VIDEO_FORMAT (
+    echo.
+    echo [DIAGNOSTICO] Consultando os formatos disponibilizados pelo YouTube...
+    echo.
+    "%YTDLP%" %PLAYLIST% --list-formats -- "%URL%" >"%TEMP_YTDLP%\\available_formats.txt" 2>&1
+    if exist "%TEMP_YTDLP%\\available_formats.txt" (
+        type "%TEMP_YTDLP%\\available_formats.txt"
+    )
+    echo.
+    echo [DIAGNOSTICO] Fim da lista de formatos.
+    echo.
+)
 
 echo.
 echo ============================================================
