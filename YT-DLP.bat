@@ -18,6 +18,9 @@ REM - Verifica atualizacao do FFmpeg
 REM - Suporta cookies.txt
 REM - Permite selecionar o navegador para obter cookies
 REM - Fallback automatico sem cookies
+REM - Aceita links musicais do Spotify e Apple Music
+REM - Pesquisa faixas no YouTube e baixa com yt-dlp
+REM - Gera relatorio de faixas nao encontradas
 REM - Detecta playlist pelo parametro "list="
 REM - Permite playlist inteira ou video individual
 REM - Detecta categoria
@@ -678,7 +681,7 @@ echo.
 
 set "URL="
 
-set /p "URL=Cole o link do YouTube: "
+set /p "URL=Cole o link do YouTube, Spotify ou Apple Music: "
 
 if not defined URL (
     echo.
@@ -767,6 +770,52 @@ if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PRO
     echo Perfil: "!BROWSER_PROFILE!"
 )
 
+
+REM ============================================================
+REM LINKS DE SERVICOS MUSICAIS (SPOTIFY / APPLE MUSIC)
+REM ============================================================
+
+if /I not "!URL:spotify.com=!"=="!URL!" goto EXTERNAL_MUSIC
+if /I not "!URL:music.apple.com=!"=="!URL!" goto EXTERNAL_MUSIC
+
+goto CHECK_YOUTUBE_PLAYLIST
+
+:EXTERNAL_MUSIC
+
+echo.
+echo ============================================================
+echo               SERVICO MUSICAL DETECTADO
+echo ============================================================
+echo.
+echo O programa vai ler as faixas do servico e pesquisar cada uma no YouTube.
+echo O audio sera baixado pelo yt-dlp e convertido para MP3.
+echo.
+
+set "OUTPUT_MODE=PLAYLIST"
+set "CATEGORY=Music"
+
+if not exist "%DENO%" (
+    echo [ERRO] Deno nao esta disponivel. Nao e possivel processar links musicais.
+    set "RESULT=1"
+    goto FINISH
+)
+
+"%DENO%" run --allow-net=spotify.com,open.spotify.com,music.apple.com,amp-api.music.apple.com --allow-run --allow-read --allow-write "%BASE%Musicas.ts" ^
+    --url "!URL!" ^
+    --ytdlp "%YTDLP%" ^
+    --ffmpeg "%FFMPEG_BIN%" ^
+    --output "%OUTPUT_ROOT%" ^
+    --temp "%TEMP_YTDLP%" ^
+    --cookie-mode "!COOKIE_MODE!" ^
+    --browser "!LOCAL_BROWSER!" ^
+    --cookie-file "%COOKIE_FILE%"
+
+set "RESULT=!ERRORLEVEL!"
+
+goto FINISH
+
+
+:CHECK_YOUTUBE_PLAYLIST
 
 REM ============================================================
 REM DETECTA PLAYLIST PELO LINK
