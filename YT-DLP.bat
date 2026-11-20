@@ -785,13 +785,13 @@ goto CHECK_YOUTUBE_PLAYLIST
 :EXTERNAL_MUSIC
 
 if /I not "!URL:spotify.com=!"=="!URL!" (
-    powershell -NoProfile -Command "Write-Host '● Spotify' -ForegroundColor Green"
+    powershell -NoProfile -Command "Write-Host 'Spotify' -ForegroundColor Green"
 ) else if /I not "!URL:music.apple.com=!"=="!URL!" (
-    powershell -NoProfile -Command "Write-Host '● Apple ' -ForegroundColor Red -NoNewline; Write-Host 'Music' -ForegroundColor Magenta"
+    powershell -NoProfile -Command "Write-Host 'Apple ' -ForegroundColor Red -NoNewline; Write-Host 'Music' -ForegroundColor Magenta"
 ) else if /I not "!URL:deezer.com=!"=="!URL!" (
-    powershell -NoProfile -Command "Write-Host '● Deezer' -ForegroundColor Magenta"
+    powershell -NoProfile -Command "Write-Host 'Deezer' -ForegroundColor Magenta"
 ) else (
-    powershell -NoProfile -Command "Write-Host '● YouTube Music' -ForegroundColor Red"
+    powershell -NoProfile -Command "Write-Host 'YouTube Music' -ForegroundColor Red"
 )
 
 echo.
