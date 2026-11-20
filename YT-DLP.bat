@@ -1427,6 +1427,11 @@ REM ============================================================
 
 :FINISH
 
+if exist "%TEMP_YTDLP%\download_error.txt" (
+    type "%TEMP_YTDLP%\download_error.txt"
+)
+
+echo.
 REM ============================================================
 REM DIAGNOSTICO SOMENTE PARA INDISPONIBILIDADE DE FORMATO
 REM ============================================================
