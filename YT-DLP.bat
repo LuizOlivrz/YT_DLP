@@ -779,11 +779,9 @@ echo.
 
 set "HAS_PLAYLIST=0"
 
-echo !URL! | findstr /I /C:"list=" >nul
-
-if not errorlevel 1 (
-    set "HAS_PLAYLIST=1"
-)
+REM Verifica o parametro list= sem enviar a URL ao interpretador do CMD.
+REM A substituicao interna evita que o caractere & seja executado como separador.
+if not "!URL:list=!"=="!URL!" set "HAS_PLAYLIST=1"
 
 if "!HAS_PLAYLIST!"=="1" goto PLAYLIST_DETECTED
 
