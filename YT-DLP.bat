@@ -232,6 +232,52 @@ echo.
 
 
 REM ============================================================
+REM VERIFICA / INSTALA DENO (RUNTIME JAVASCRIPT)
+REM ============================================================
+
+set "DENO_DIR=%TOOLS%\deno"
+set "DENO=%DENO_DIR%\deno.exe"
+
+if exist "%DENO%" goto DENO_READY
+
+echo ============================================================
+echo             VERIFICANDO RUNTIME JAVASCRIPT
+echo ============================================================
+echo.
+echo Deno nao encontrado. Baixando versao portatil...
+echo.
+
+if not exist "%DENO_DIR%" mkdir "%DENO_DIR%" >nul 2>&1
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; $arch=$env:PROCESSOR_ARCHITECTURE; if ($arch -eq 'ARM64') { $asset='deno-aarch64-pc-windows-msvc.zip' } elseif ($arch -eq 'AMD64') { $asset='deno-x86_64-pc-windows-msvc.zip' } else { throw 'Arquitetura Windows nao suportada pelo pacote portatil do Deno.' }; $zip=Join-Path '%TOOLS%' 'deno.zip'; $tmp=Join-Path '%TOOLS%' 'deno_extract'; try { Invoke-WebRequest -Uri ('https://github.com/denoland/deno/releases/latest/download/' + $asset) -OutFile $zip; if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }; Expand-Archive -LiteralPath $zip -DestinationPath $tmp -Force; Move-Item -LiteralPath (Join-Path $tmp 'deno.exe') -Destination '%DENO%' -Force; exit 0 } catch { Write-Error $_; exit 1 } finally { if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue }; if (Test-Path $zip) { Remove-Item $zip -Force -ErrorAction SilentlyContinue } }"
+
+if errorlevel 1 (
+    echo.
+    echo [AVISO] Nao foi possivel instalar o Deno portatil.
+    echo A extracao do YouTube pode falhar ou apresentar formatos limitados.
+    echo.
+    goto DENO_CONTINUE
+)
+
+:DENO_READY
+
+if exist "%DENO%" (
+    echo [OK] Deno encontrado:
+    "%DENO%" --version
+    set "PATH=%DENO_DIR%;%PATH%"
+) else (
+    echo.
+    echo [AVISO] Deno indisponivel. O yt-dlp tentara continuar sem runtime JavaScript.
+    echo.
+)
+
+:DENO_CONTINUE
+
+echo.
+
+
+REM ============================================================
 REM VERIFICA FFMPEG
 REM ============================================================
 
