@@ -789,10 +789,13 @@ if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PRO
 )
 
 
+goto AFTER_MUSICAL_COOKIE_BYPASS
+
 :MUSICAL_LINKS
 set "COOKIE_MODE=NONE"
 set "LOCAL_BROWSER=edge"
 
+:AFTER_MUSICAL_COOKIE_BYPASS
 REM ============================================================
 REM LINKS DE SERVICOS MUSICAIS (SPOTIFY / APPLE MUSIC / DEEZER / YOUTUBE MUSIC)
 REM ============================================================
