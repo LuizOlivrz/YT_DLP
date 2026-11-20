@@ -68,15 +68,25 @@ async function download(name:string,tracks:Track[]){
       const queries=[(t.artist+" "+t.title).trim(),(t.title+" "+t.artist).trim(),t.title];
       const found=new Map<string,any>();
       for(const query of queries){
-        let search;try{search=await runYt(["--dump-single-json","--no-warnings","--skip-download","ytsearch10:"+query],true);}catch(e){console.log("  [AVISO] Pesquisa alternativa falhou: "+String(e));continue;}
-        if(search.code!==0)continue;
-        try{const p=JSON.parse(search.out);for(const entry of(Array.isArray(p?.entries)?p.entries:[])){if(!entry)continue;const key=String(entry.id||entry.webpage_url||entry.url||"");if(key&&!found.has(key))found.set(key,entry);}}catch{}
+        const musicSearch=new URL("https://music.youtube.com/search");
+        musicSearch.searchParams.set("q",query);
+        musicSearch.searchParams.set("sp","EgWKAQIIAWoKEAoQAxAEEAkQBQ==");
+        let search;try{search=await runYt(["--dump-single-json","--flat-playlist","--no-warnings","--skip-download",musicSearch.toString()],true);}catch(e){console.log("  [AVISO] Pesquisa no YouTube Music falhou: "+String(e));continue;}
+        if(search.code===0)try{const p=JSON.parse(search.out);for(const entry of(Array.isArray(p?.entries)?p.entries:[])){if(!entry)continue;const key=String(entry.id||entry.webpage_url||entry.url||"");if(key&&!found.has(key))found.set(key,entry);}}catch{}
         if([...found.values()].some((entry:any)=>score(entry,t)>=15))break;
+      }
+      if(!found.size){
+        for(const query of queries){
+          let search;try{search=await runYt(["--dump-single-json","--no-warnings","--skip-download","ytsearch10:"+query],true);}catch(e){console.log("  [AVISO] Pesquisa alternativa falhou: "+String(e));continue;}
+          if(search.code!==0)continue;
+          try{const p=JSON.parse(search.out);for(const entry of(Array.isArray(p?.entries)?p.entries:[])){if(!entry)continue;const key=String(entry.id||entry.webpage_url||entry.url||"");if(key&&!found.has(key))found.set(key,entry);}}catch{}
+          if([...found.values()].some((entry:any)=>score(entry,t)>=15))break;
+        }
       }
       const entries=[...found.values()];
       if(!entries.length){failed.push(label+": não encontrada");console.log("  [NÃO ENCONTRADA]");continue;}
       entries.sort((a:any,b:any)=>score(b,t)-score(a,t));const best=entries[0],s=score(best,t),bestTitle=norm(String(best?.title||"")),wantedTitle=norm(t.title),titleMatch=bestTitle===wantedTitle||bestTitle.includes(wantedTitle);
-      video=String(best?.webpage_url||best?.url||"");
+      video=String(best?.webpage_url||best?.url||(best?.id?"https://www.youtube.com/watch?v="+best.id:""));
       if(s<8||!titleMatch||!video){failed.push(label+": nenhum resultado confiável (melhor: "+String(best?.title||"sem título")+")");console.log("  [IGNORADA] Resultado não confiável.");continue;}
     }
     const date=localDownloadDate(),filename=filePart(t.title)+"-"+filePart(t.artist||"Artista desconhecido")+"_"+date,outputPath=folder+"\\"+filename+".mp3",template=filename+".%(ext)s";
