@@ -25,12 +25,12 @@ As faixas sem correspondência confiável não são baixadas automaticamente. Ao
 
 ### Dependências
 
-O BAT instala/usa yt-dlp, FFmpeg e Deno localmente em `tools\\`. O módulo `Musicas.ts` é executado pelo Deno e não abre navegador para consultar os links musicais. Os cookies configurados no fluxo atual podem ser usados nas pesquisas e downloads do YouTube.
+O BAT instala/usa yt-dlp, FFmpeg e Deno localmente em `tools\`. O módulo `Musicas.ts` é executado pelo Deno e não abre navegador para consultar os links musicais. Os cookies configurados no fluxo atual podem ser usados nas pesquisas e downloads do YouTube.
 
 ### Limitações atuais
 
 - A integração de metadados contempla Spotify e Apple Music nesta versão.
-- A leitura depende das páginas e endpoints públicos dos serviços, que podem mudar sem aviso.
+- A leitura depende das páginas e endpoints públicos dos serviços, que podem mudar sem aviso ou aplicar limites temporários de acesso.
 - O Spotify pode limitar a quantidade de faixas expostas pelo conteúdo incorporado.
 - O áudio é pesquisado no YouTube; a versão encontrada pode diferir da gravação original. O programa aplica uma pontuação de correspondência por título, artista e duração e ignora resultados com pontuação baixa.
 - Deezer e outros serviços ainda não possuem adaptador nesta versão.
