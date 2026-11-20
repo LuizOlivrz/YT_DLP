@@ -134,7 +134,7 @@ if !FREE_MB! LSS 300 (
         if defined ALT_DRIVE (
             set "ALT_DRIVE=!ALT_DRIVE:~0,2!"
             if exist "!ALT_DRIVE!\" (
-                set "OUTPUT_ROOT=!ALT_DRIVE!\YT-DLP"
+                set "OUTPUT_ROOT=!ALT_DRIVE!\YT-DLP\Downloads"
                 set "OUTPUT_VIDEO=!OUTPUT_ROOT!"
                 set "OUTPUT_MUSIC=!OUTPUT_ROOT!"
                 if not exist "!OUTPUT_ROOT!" mkdir "!OUTPUT_ROOT!" >nul 2>&1
