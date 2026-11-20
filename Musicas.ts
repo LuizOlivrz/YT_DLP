@@ -54,7 +54,7 @@ async function download(name:string,tracks:Track[]){
       video=String(best?.webpage_url||best?.url||"");
       if(s<6||!titleMatch||!video){failed.push(label+": nenhum resultado confiável (melhor: "+String(best?.title||"sem título")+")");console.log("  [IGNORADA] Resultado não confiável.");continue;}
     }
-    const date=localDownloadDate(),filename=filePart(t.title)+"-"+filePart(t.artist||"Artista desconhecido")+"_"+date,outputPath=folder+"\\"+filename+".mp3",template=folder+"\\"+filename+".%(ext)s";
+    const date=localDownloadDate(),filename=filePart(t.title)+"-"+filePart(t.artist||"Artista desconhecido")+"_"+date,outputPath=folder+"\\"+filename+".mp3",template=filename+".%(ext)s";
     const downloadArgs=["--no-playlist","--ffmpeg-location",ffmpeg,"-f","bestaudio/best","--extract-audio","--audio-format","mp3","--audio-quality","0","--embed-metadata","--embed-thumbnail","--convert-thumbnails","jpg","--windows-filenames","--no-overwrites","--paths","home:"+folder,"--paths","temp:"+tempRoot,"--parse-metadata","title:%(meta_title)s","--replace-in-metadata","meta_title",".*",t.title,"--parse-metadata","title:%(meta_artist)s","--replace-in-metadata","meta_artist",".*",t.artist,"--parse-metadata","title:%(meta_album)s","--replace-in-metadata","meta_album",".*",t.album,"--parse-metadata","title:%(meta_album_artist)s","--replace-in-metadata","meta_album_artist",".*",t.artist,"--parse-metadata","title:%(meta_track)s","--replace-in-metadata","meta_track",".*",String(t.number)];
     if(t.year)downloadArgs.push("--parse-metadata","title:%(meta_date)s","--replace-in-metadata","meta_date",".*",t.year);
     downloadArgs.push("-o",template,"--",video);
