@@ -775,9 +775,8 @@ REM ============================================================
 REM LINKS DE SERVICOS MUSICAIS (SPOTIFY / APPLE MUSIC)
 REM ============================================================
 
-echo !URL! | findstr /I /C:"spotify.com" /C:"music.apple.com" >nul
-
-if not errorlevel 1 goto EXTERNAL_MUSIC
+if /I not "!URL:spotify.com=!"=="!URL!" goto EXTERNAL_MUSIC
+if /I not "!URL:music.apple.com=!"=="!URL!" goto EXTERNAL_MUSIC
 
 goto CHECK_YOUTUBE_PLAYLIST
 
