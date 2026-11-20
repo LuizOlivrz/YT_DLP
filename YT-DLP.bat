@@ -872,7 +872,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "!URL!" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 
 ) else if /I "!COOKIE_MODE!"=="LOCAL" (
@@ -883,7 +883,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "!URL!" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 ) else (
 
@@ -892,7 +892,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "!URL!" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 )
 
@@ -1081,7 +1081,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            -- "%URL%"
+            -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     ) else (
 
@@ -1096,7 +1096,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            -- "%URL%"
+            -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     )
 
@@ -1129,7 +1129,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            -- "%URL%"
+            -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     ) else (
 
@@ -1144,7 +1144,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            -- "%URL%"
+            -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     )
 
@@ -1174,7 +1174,7 @@ if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        -- "%URL%"
+        -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
 ) else (
 
@@ -1188,7 +1188,7 @@ if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
         --paths "home:%OUTPUT_VIDEO%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!VIDEO_OUTPUT!" ^
-        -- "%URL%"
+        -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
 )
 
@@ -1199,7 +1199,13 @@ goto FINISH
 
 :CHECK_LOCAL_DOWNLOAD_ERROR
 
-if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
+set "COOKIE_COPY_ERROR=0"
+if exist "%TEMP_YTDLP%\download_error.txt" (
+    findstr /I /C:"Could not copy Chrome cookie database" "%TEMP_YTDLP%\download_error.txt" >nul
+    if not errorlevel 1 set "COOKIE_COPY_ERROR=1"
+)
+
+if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" if "!COOKIE_COPY_ERROR!"=="1" (
     echo.
     echo [AVISO] O navegador local falhou. Tentando sem cookies...
     echo.
@@ -1221,7 +1227,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            -- "%URL%"
+            -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     ) else (
 
@@ -1235,7 +1241,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            -- "%URL%"
+            -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     )
 
@@ -1302,7 +1308,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        -- "%URL%"
+        -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     set "RESULT=!ERRORLEVEL!"
 
@@ -1331,7 +1337,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        -- "%URL%"
+        -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     set "RESULT=!ERRORLEVEL!"
 
@@ -1357,7 +1363,7 @@ REM ------------------------------------------------------------
     --paths "home:%OUTPUT_MUSIC%" ^
     --paths "temp:%TEMP_YTDLP%" ^
     -o "!MUSIC_OUTPUT!" ^
-    -- "%URL%"
+    -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
 set "RESULT=!ERRORLEVEL!"
 
@@ -1366,7 +1372,13 @@ goto FINISH
 
 :CHECK_LOCAL_MUSIC_ERROR
 
-if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
+set "COOKIE_COPY_ERROR=0"
+if exist "%TEMP_YTDLP%\download_error.txt" (
+    findstr /I /C:"Could not copy Chrome cookie database" "%TEMP_YTDLP%\download_error.txt" >nul
+    if not errorlevel 1 set "COOKIE_COPY_ERROR=1"
+)
+
+if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" if "!COOKIE_COPY_ERROR!"=="1" (
     echo.
     echo [AVISO] O navegador local falhou. Tentando sem cookies...
     echo.
@@ -1386,7 +1398,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        -- "%URL%"
+        -- "!URL!" 2>"%TEMP_YTDLP%\download_error.txt"
 
     set "RESULT=!ERRORLEVEL!"
 )
@@ -1416,20 +1428,24 @@ REM ============================================================
 :FINISH
 
 REM ============================================================
-REM DIAGNOSTICO DE FORMATOS QUANDO O DOWNLOAD DE VIDEO FALHAR
+REM DIAGNOSTICO SOMENTE PARA INDISPONIBILIDADE DE FORMATO
 REM ============================================================
 
 if not "%RESULT%"=="0" if not "%RESULT%"=="2" if defined VIDEO_FORMAT (
-    echo.
-    echo [DIAGNOSTICO] Consultando os formatos disponibilizados pelo YouTube...
-    echo.
-    "%YTDLP%" %PLAYLIST% --list-formats -- "%URL%" >"%TEMP_YTDLP%\available_formats.txt" 2>&1
-    if exist "%TEMP_YTDLP%\available_formats.txt" (
-        type "%TEMP_YTDLP%\available_formats.txt"
+    if exist "%TEMP_YTDLP%\download_error.txt" (
+        findstr /I /C:"Requested format is not available" "%TEMP_YTDLP%\download_error.txt" >nul
+        if not errorlevel 1 (
+            echo.
+            echo [DIAGNOSTICO] A falha indica indisponibilidade de formato.
+            echo Consultando os formatos disponibilizados pelo YouTube...
+            echo.
+            "%YTDLP%" %PLAYLIST% --list-formats -- "!URL!" >"%TEMP_YTDLP%\available_formats.txt" 2>&1
+            if exist "%TEMP_YTDLP%\available_formats.txt" type "%TEMP_YTDLP%\available_formats.txt"
+            echo.
+            echo [DIAGNOSTICO] Fim da lista de formatos.
+            echo.
+        )
     )
-    echo.
-    echo [DIAGNOSTICO] Fim da lista de formatos.
-    echo.
 )
 
 echo.
@@ -1442,6 +1458,12 @@ if "%RESULT%"=="0" (
 ) else if "%RESULT%"=="2" (
 
     echo OPERACAO CANCELADA.
+
+) else if /I "!OUTPUT_MODE!"=="PLAYLIST" (
+
+    echo A PLAYLIST TERMINOU COM FALHAS EM UM OU MAIS ITENS.
+    echo Os itens concluidos permanecem salvos na pasta de destino.
+    echo Codigo: %RESULT%
 
 ) else (
 
