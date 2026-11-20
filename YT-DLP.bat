@@ -662,11 +662,11 @@ echo.
 echo [1] Microsoft Edge (padrao)
 echo [2] Google Chrome
 echo [3] Chromium
-echo [5] Arquivo cookies\youtube.txt
-echo [6] Nao usar cookies
+echo [4] Arquivo cookies\youtube.txt
+echo [5] Nao usar cookies
 echo.
 set "BROWSER_CHOICE=1"
-set /p "BROWSER_CHOICE=Opcao [1-5] (Enter = Edge): 
+set /p "BROWSER_CHOICE=Opcao [1-5] (Enter = Edge): "
 
 if "!BROWSER_CHOICE!"=="1" (
     set "LOCAL_BROWSER=edge"
@@ -713,7 +713,7 @@ if "!BROWSER_CHOICE!"=="3" if not exist "%CHROMIUM_PROFILE%\Default" (
 )
 
 
-if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if not "!BROWSER_CHOICE!"=="4" if exist "!BROWSER_PROFILE!" (
+if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PROFILE!" (
     set "COOKIE_MODE=LOCAL"
     echo.
     echo [OK] Navegador selecionado: !LOCAL_BROWSER!
