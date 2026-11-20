@@ -1046,7 +1046,7 @@ if /I "!OUTPUT_MODE!"=="PLAYLIST" (
 if /I "!VIDEO_QUALITY!"=="best" (
     set "VIDEO_FORMAT=-f bv*[vcodec^^=avc1]+ba[ext=m4a]/bv*[vcodec^^=avc1]+ba/b[vcodec^^=avc1]"
 ) else (
-    set "VIDEO_FORMAT=-f bv*[vcodec^^=avc1][height^<=!VIDEO_QUALITY!]+ba[ext=m4a]/bv*[vcodec^^=avc1][height^<=!VIDEO_QUALITY!]+ba/b[vcodec^^=avc1][height^<=!VIDEO_QUALITY!]""
+    set "VIDEO_FORMAT=-f bv*[vcodec^^=avc1][height^<=!VIDEO_QUALITY!]+ba[ext=m4a]/bv*[vcodec^^=avc1][height^<=!VIDEO_QUALITY!]+ba/b[vcodec^^=avc1][height^<=!VIDEO_QUALITY!]
 )
 
 
