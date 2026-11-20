@@ -18,7 +18,7 @@ REM - Verifica atualizacao do FFmpeg
 REM - Suporta cookies.txt
 REM - Permite selecionar o navegador para obter cookies
 REM - Fallback automatico sem cookies
-REM - Aceita links musicais do Spotify e Apple Music
+REM - Aceita links musicais do Spotify, Apple Music, Deezer e YouTube Music
 REM - Pesquisa faixas no YouTube e baixa com yt-dlp
 REM - Gera relatorio de faixas nao encontradas
 REM - Detecta playlist pelo parametro "list="
@@ -681,7 +681,7 @@ echo.
 
 set "URL="
 
-set /p "URL=Cole o link do YouTube, Spotify ou Apple Music: "
+set /p "URL=Cole o link do YouTube, YouTube Music, Spotify, Apple Music ou Deezer: "
 
 if not defined URL (
     echo.
@@ -772,11 +772,13 @@ if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PRO
 
 
 REM ============================================================
-REM LINKS DE SERVICOS MUSICAIS (SPOTIFY / APPLE MUSIC)
+REM LINKS DE SERVICOS MUSICAIS (SPOTIFY / APPLE MUSIC / DEEZER / YOUTUBE MUSIC)
 REM ============================================================
 
 if /I not "!URL:spotify.com=!"=="!URL!" goto EXTERNAL_MUSIC
 if /I not "!URL:music.apple.com=!"=="!URL!" goto EXTERNAL_MUSIC
+if /I not "!URL:music.youtube.com=!"=="!URL!" goto EXTERNAL_MUSIC
+if /I not "!URL:deezer.com=!"=="!URL!" goto EXTERNAL_MUSIC
 
 goto CHECK_YOUTUBE_PLAYLIST
 
@@ -800,7 +802,7 @@ if not exist "%DENO%" (
     goto FINISH
 )
 
-"%DENO%" run --allow-net=spotify.com,open.spotify.com,music.apple.com,amp-api.music.apple.com --allow-run --allow-read --allow-write "%BASE%Musicas.ts" ^
+"%DENO%" run --allow-net=spotify.com,open.spotify.com,music.apple.com,amp-api.music.apple.com,api.deezer.com,music.youtube.com,youtube.com,www.youtube.com --allow-run --allow-read --allow-write "%BASE%Musicas.ts" ^
     --url "!URL!" ^
     --ytdlp "%YTDLP%" ^
     --ffmpeg "%FFMPEG_BIN%" ^
@@ -816,6 +818,12 @@ goto FINISH
 
 
 :CHECK_YOUTUBE_PLAYLIST
+
+REM ============================================================
+REM IDENTIFICA YOUTUBE (VERMELHO)
+REM ============================================================
+
+powershell -NoProfile -Command "Write-Host '● YouTube' -ForegroundColor Red"
 
 REM ============================================================
 REM DETECTA PLAYLIST PELO LINK
