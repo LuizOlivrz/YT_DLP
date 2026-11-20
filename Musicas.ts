@@ -75,7 +75,8 @@ async function download(name:string,tracks:Track[]){
         if(search.code===0)try{const p=JSON.parse(search.out);for(const entry of(Array.isArray(p?.entries)?p.entries:[])){if(!entry)continue;const key=String(entry.id||entry.webpage_url||entry.url||"");if(key&&!found.has(key))found.set(key,entry);}}catch{}
         if([...found.values()].some((entry:any)=>score(entry,t)>=15))break;
       }
-      if(!found.size){
+      const wanted=norm(t.title);const hasMusicMatch=[...found.values()].some((entry:any)=>{const title=norm(String(entry?.title||""));return score(entry,t)>=8&&(title===wanted||title.includes(wanted));});
+      if(!hasMusicMatch){
         for(const query of queries){
           let search;try{search=await runYt(["--dump-single-json","--no-warnings","--skip-download","ytsearch10:"+query],true);}catch(e){console.log("  [AVISO] Pesquisa alternativa falhou: "+String(e));continue;}
           if(search.code!==0)continue;
