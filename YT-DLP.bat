@@ -49,8 +49,6 @@ REM Arquivo usado para controlar verificacao do FFmpeg
 set "FFMPEG_CHECK=%TOOLS%\ffmpeg_update_check.txt"
 
 REM Perfis dos navegadores suportados
-set "BRAVE_ROOT=E:\Universal (Z)\Programas\brave-portable\app"
-set "BRAVE_PROFILE=%BRAVE_ROOT%\data\Default"
 set "EDGE_PROFILE=%LOCALAPPDATA%\Microsoft\Edge\User Data"
 set "CHROME_PROFILE=%LOCALAPPDATA%\Google\Chrome\User Data"
 set "CHROMIUM_PROFILE=%LOCALAPPDATA%\Chromium\User Data"
@@ -664,12 +662,11 @@ echo.
 echo [1] Microsoft Edge (padrao)
 echo [2] Google Chrome
 echo [3] Chromium
-echo [4] Brave Portable
 echo [5] Arquivo cookies\youtube.txt
 echo [6] Nao usar cookies
 echo.
 set "BROWSER_CHOICE=1"
-set /p "BROWSER_CHOICE=Opcao [1-6] (Enter = Edge): "
+set /p "BROWSER_CHOICE=Opcao [1-5] (Enter = Edge): 
 
 if "!BROWSER_CHOICE!"=="1" (
     set "LOCAL_BROWSER=edge"
@@ -681,9 +678,6 @@ if "!BROWSER_CHOICE!"=="1" (
     set "LOCAL_BROWSER=chromium"
     set "BROWSER_PROFILE=%CHROMIUM_PROFILE%\Default"
 ) else if "!BROWSER_CHOICE!"=="4" (
-    set "LOCAL_BROWSER=brave:%BRAVE_PROFILE%"
-    set "BROWSER_PROFILE=%BRAVE_PROFILE%"
-) else if "!BROWSER_CHOICE!"=="5" (
     if exist "%COOKIE_FILE%" (
         set "COOKIE_MODE=FILE"
         echo.
@@ -693,7 +687,7 @@ if "!BROWSER_CHOICE!"=="1" (
         echo [AVISO] Arquivo cookies\youtube.txt nao encontrado.
         echo O download seguira sem cookies.
     )
-) else if "!BROWSER_CHOICE!"=="6" (
+) else if "!BROWSER_CHOICE!"=="5" (
     set "COOKIE_MODE=NONE"
 ) else (
     echo.
@@ -717,13 +711,9 @@ if "!BROWSER_CHOICE!"=="3" if not exist "%CHROMIUM_PROFILE%\Default" (
     echo [AVISO] Perfil do Chromium nao encontrado. Tentando sem cookies.
     set "COOKIE_MODE=NONE"
 )
-if "!BROWSER_CHOICE!"=="4" if not exist "%BRAVE_PROFILE%" (
-    echo.
-    echo [AVISO] Perfil do Brave Portable nao encontrado. Tentando sem cookies.
-    set "COOKIE_MODE=NONE"
-)
 
-if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="6" if not "!BROWSER_CHOICE!"=="5" if exist "!BROWSER_PROFILE!" (
+
+if "!COOKIE_MODE!"=="NONE" if not "!BROWSER_CHOICE!"=="5" if not "!BROWSER_CHOICE!"=="4" if exist "!BROWSER_PROFILE!" (
     set "COOKIE_MODE=LOCAL"
     echo.
     echo [OK] Navegador selecionado: !LOCAL_BROWSER!
@@ -837,15 +827,6 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --print "%%(categories.0|)s" ^
         -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
-) else if /I "!COOKIE_MODE!"=="BRAVE" (
-
-    "%YTDLP%" ^
-        --cookies-from-browser "brave:%BRAVE_PROFILE%" ^
-        --no-playlist ^
-        --skip-download ^
-        --no-warnings ^
-        --print "%%(categories.0|)s" ^
-        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 ) else if /I "!COOKIE_MODE!"=="LOCAL" (
 
@@ -866,49 +847,6 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --print "%%(categories.0|)s" ^
         -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
-)
-
-
-REM ============================================================
-REM VERIFICA ERRO DE COOKIES
-REM ============================================================
-
-if /I "!COOKIE_MODE!"=="BRAVE" (
-
-    findstr /I /C:"Failed to decrypt with DPAPI" "%TEMP_YTDLP%\category_error.txt" >nul
-
-    if not errorlevel 1 (
-
-        echo.
-        echo [AVISO] O Brave foi encontrado, mas o yt-dlp nao conseguiu
-        echo descriptografar os cookies usando o DPAPI do Windows.
-        echo.
-
-        if defined LOCAL_BROWSER (
-            echo [INFO] Tentando agora com o navegador local: !LOCAL_BROWSER!
-            echo.
-            set "COOKIE_MODE=LOCAL"
-
-            "%YTDLP%" ^
-                --cookies-from-browser "!LOCAL_BROWSER!" ^
-                --no-playlist ^
-                --skip-download ^
-                --no-warnings ^
-                --print "%%(categories.0|)s" ^
-                -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
-        ) else (
-            echo O download continuara SEM cookies.
-            echo.
-            set "COOKIE_MODE=NONE"
-
-            "%YTDLP%" ^
-                --no-playlist ^
-                --skip-download ^
-                --no-warnings ^
-                --print "%%(categories.0|)s" ^
-                -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
-        )
-    )
 )
 
 
@@ -1122,54 +1060,6 @@ if /I "!COOKIE_MODE!"=="FILE" (
 
 
 REM ------------------------------------------------------------
-REM COM COOKIES DO BRAVE
-REM ------------------------------------------------------------
-
-if /I "!COOKIE_MODE!"=="BRAVE" (
-
-    if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
-
-        "%YTDLP%" ^
-            --cookies-from-browser "brave:%BRAVE_PROFILE%" ^
-            %PLAYLIST% ^
-            --ffmpeg-location "%FFMPEG_BIN%" ^
-            -f "ba/b" ^
-            --extract-audio ^
-            --audio-format mp3 ^
-            --audio-quality 0 ^
-            --embed-metadata ^
-            --embed-thumbnail ^
-            --convert-thumbnails jpg ^
-            --windows-filenames ^
-            --paths "home:%OUTPUT_MUSIC%" ^
-            --paths "temp:%TEMP_YTDLP%" ^
-            -o "!MUSIC_OUTPUT!" ^
-            -- "%URL%"
-
-    ) else (
-
-        "%YTDLP%" ^
-            --cookies-from-browser "brave:%BRAVE_PROFILE%" ^
-            %PLAYLIST% ^
-            --ffmpeg-location "%FFMPEG_BIN%" ^
-            !VIDEO_FORMAT! ^
-            !VIDEO_SUBTITLE_ARGS! ^
-            --merge-output-format !VIDEO_FINAL_FORMAT! ^
-            --windows-filenames ^
-            --paths "home:%OUTPUT_VIDEO%" ^
-            --paths "temp:%TEMP_YTDLP%" ^
-            -o "!VIDEO_OUTPUT!" ^
-            -- "%URL%"
-
-    )
-
-    set "RESULT=!ERRORLEVEL!"
-
-    goto CHECK_BRAVE_DOWNLOAD_ERROR
-)
-
-
-REM ------------------------------------------------------------
 REM COM COOKIES DO NAVEGADOR LOCAL
 REM ------------------------------------------------------------
 
@@ -1213,7 +1103,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
 
     set "RESULT=!ERRORLEVEL!"
 
-    goto CHECK_BRAVE_DOWNLOAD_ERROR
+    goto CHECK_LOCAL_DOWNLOAD_ERROR
 )
 
 
@@ -1259,110 +1149,6 @@ set "RESULT=!ERRORLEVEL!"
 
 goto FINISH
 
-
-REM ============================================================
-REM VERIFICA ERRO DO BRAVE NO DOWNLOAD
-REM ============================================================
-
-:CHECK_BRAVE_DOWNLOAD_ERROR
-
-if "!RESULT!"=="0" goto FINISH
-
-if /I "!COOKIE_MODE!"=="BRAVE" (
-
-    findstr /I /C:"Failed to decrypt with DPAPI" "%TEMP_YTDLP%\category_error.txt" >nul
-
-    if not errorlevel 1 (
-
-        echo.
-        echo [AVISO] Falha de descriptografia DPAPI detectada.
-        echo.
-
-        if defined LOCAL_BROWSER (
-            echo [INFO] Tentando novamente com o navegador local: !LOCAL_BROWSER!
-            echo.
-            set "COOKIE_MODE=LOCAL"
-
-            if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
-
-                "%YTDLP%" ^
-                    --cookies-from-browser "!LOCAL_BROWSER!" ^
-                    %PLAYLIST% ^
-                    --ffmpeg-location "%FFMPEG_BIN%" ^
-                    -f "ba/b" ^
-                    --extract-audio ^
-                    --audio-format mp3 ^
-                    --audio-quality 0 ^
-                    --embed-metadata ^
-                    --embed-thumbnail ^
-                    --convert-thumbnails jpg ^
-                    --windows-filenames ^
-                    --paths "home:%OUTPUT_MUSIC%" ^
-                    --paths "temp:%TEMP_YTDLP%" ^
-                    -o "!MUSIC_OUTPUT!" ^
-                    -- "%URL%"
-
-            ) else (
-
-                "%YTDLP%" ^
-                    --cookies-from-browser "!LOCAL_BROWSER!" ^
-                    %PLAYLIST% ^
-                    --ffmpeg-location "%FFMPEG_BIN%" ^
-                    !VIDEO_FORMAT! ^
-                    !VIDEO_SUBTITLE_ARGS! ^
-                    --merge-output-format !VIDEO_FINAL_FORMAT! ^
-                    --windows-filenames ^
-                    --paths "home:%OUTPUT_VIDEO%" ^
-                    --paths "temp:%TEMP_YTDLP%" ^
-                    -o "!VIDEO_OUTPUT!" ^
-                    -- "%URL%"
-
-            )
-
-            set "RESULT=!ERRORLEVEL!"
-        ) else (
-            echo Tentando novamente sem cookies...
-            echo.
-            set "COOKIE_MODE=NONE"
-
-            if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
-
-                "%YTDLP%" ^
-                    %PLAYLIST% ^
-                    --ffmpeg-location "%FFMPEG_BIN%" ^
-                    -f "ba/b" ^
-                    --extract-audio ^
-                    --audio-format mp3 ^
-                    --audio-quality 0 ^
-                    --embed-metadata ^
-                    --embed-thumbnail ^
-                    --convert-thumbnails jpg ^
-                    --windows-filenames ^
-                    --paths "home:%OUTPUT_MUSIC%" ^
-                    --paths "temp:%TEMP_YTDLP%" ^
-                    -o "!MUSIC_OUTPUT!" ^
-                    -- "%URL%"
-
-            ) else (
-
-                "%YTDLP%" ^
-                    %PLAYLIST% ^
-                    --ffmpeg-location "%FFMPEG_BIN%" ^
-                    !VIDEO_FORMAT! ^
-                    !VIDEO_SUBTITLE_ARGS! ^
-                    --merge-output-format !VIDEO_FINAL_FORMAT! ^
-                    --windows-filenames ^
-                    --paths "home:%OUTPUT_VIDEO%" ^
-                    --paths "temp:%TEMP_YTDLP%" ^
-                    -o "!VIDEO_OUTPUT!" ^
-                    -- "%URL%"
-
-            )
-
-            set "RESULT=!ERRORLEVEL!"
-        )
-    )
-)
 
 if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
     echo.
@@ -1476,35 +1262,6 @@ if /I "!COOKIE_MODE!"=="FILE" (
 
 
 REM ------------------------------------------------------------
-REM COOKIES DO BRAVE
-REM ------------------------------------------------------------
-
-if /I "!COOKIE_MODE!"=="BRAVE" (
-
-    "%YTDLP%" ^
-        --cookies-from-browser "brave:%BRAVE_PROFILE%" ^
-        %PLAYLIST% ^
-        --ffmpeg-location "%FFMPEG_BIN%" ^
-        -f "ba/b" ^
-        --extract-audio ^
-        --audio-format mp3 ^
-        --audio-quality 0 ^
-        --embed-metadata ^
-        --embed-thumbnail ^
-        --convert-thumbnails jpg ^
-        --windows-filenames ^
-        --paths "home:%OUTPUT_MUSIC%" ^
-        --paths "temp:%TEMP_YTDLP%" ^
-        -o "!MUSIC_OUTPUT!" ^
-        -- "%URL%"
-
-    set "RESULT=!ERRORLEVEL!"
-
-    goto CHECK_BRAVE_MUSIC_ERROR
-)
-
-
-REM ------------------------------------------------------------
 REM COM COOKIES DO NAVEGADOR LOCAL
 REM ------------------------------------------------------------
 
@@ -1529,7 +1286,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
 
     set "RESULT=!ERRORLEVEL!"
 
-    goto CHECK_BRAVE_MUSIC_ERROR
+    goto CHECK_LOCAL_MUSIC_ERROR
 )
 
 
@@ -1557,67 +1314,6 @@ set "RESULT=!ERRORLEVEL!"
 
 goto FINISH
 
-
-REM ============================================================
-REM VERIFICA ERRO DO BRAVE / LOCAL NO DOWNLOAD DE MUSICA
-REM ============================================================
-
-:CHECK_BRAVE_MUSIC_ERROR
-
-if "!RESULT!"=="0" goto FINISH
-
-if /I "!COOKIE_MODE!"=="BRAVE" (
-
-    if defined LOCAL_BROWSER (
-        echo.
-        echo [AVISO] O Brave falhou ao usar cookies.
-        echo [INFO] Tentando novamente com o navegador local: !LOCAL_BROWSER!
-        echo.
-        set "COOKIE_MODE=LOCAL"
-
-        "%YTDLP%" ^
-            --cookies-from-browser "!LOCAL_BROWSER!" ^
-            %PLAYLIST% ^
-            --ffmpeg-location "%FFMPEG_BIN%" ^
-            -f "ba/b" ^
-            --extract-audio ^
-            --audio-format mp3 ^
-            --audio-quality 0 ^
-            --embed-metadata ^
-            --embed-thumbnail ^
-            --convert-thumbnails jpg ^
-            --windows-filenames ^
-            --paths "home:%OUTPUT_MUSIC%" ^
-            --paths "temp:%TEMP_YTDLP%" ^
-            -o "!MUSIC_OUTPUT!" ^
-            -- "%URL%"
-
-        set "RESULT=!ERRORLEVEL!"
-    ) else (
-        echo.
-        echo [AVISO] O Brave falhou. Tentando sem cookies...
-        echo.
-        set "COOKIE_MODE=NONE"
-
-        "%YTDLP%" ^
-            %PLAYLIST% ^
-            --ffmpeg-location "%FFMPEG_BIN%" ^
-            -f "ba/b" ^
-            --extract-audio ^
-            --audio-format mp3 ^
-            --audio-quality 0 ^
-            --embed-metadata ^
-            --embed-thumbnail ^
-            --convert-thumbnails jpg ^
-            --windows-filenames ^
-            --paths "home:%OUTPUT_MUSIC%" ^
-            --paths "temp:%TEMP_YTDLP%" ^
-            -o "!MUSIC_OUTPUT!" ^
-            -- "%URL%"
-
-        set "RESULT=!ERRORLEVEL!"
-    )
-)
 
 if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
     echo.
