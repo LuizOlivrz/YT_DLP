@@ -789,7 +789,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 ) else if /I "!COOKIE_MODE!"=="BRAVE" (
 
@@ -799,7 +799,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 ) else if /I "!COOKIE_MODE!"=="LOCAL" (
 
@@ -809,7 +809,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 ) else (
 
@@ -818,7 +818,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --skip-download ^
         --no-warnings ^
         --print "%%(categories.0|)s" ^
-        "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+        -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
 
 )
 
@@ -849,7 +849,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
                 --skip-download ^
                 --no-warnings ^
                 --print "%%(categories.0|)s" ^
-                "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+                -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
         ) else (
             echo O download continuara SEM cookies.
             echo.
@@ -860,7 +860,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
                 --skip-download ^
                 --no-warnings ^
                 --print "%%(categories.0|)s" ^
-                "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
+                -- "%URL%" >"%TEMP_YTDLP%\category.txt" 2>"%TEMP_YTDLP%\category_error.txt"
         )
     )
 )
@@ -961,7 +961,7 @@ if errorlevel 2 (
 echo.
 if /I "!VIDEO_SUBTITLES!"=="1" (
     echo [OK] Legendas PT-BR/PT serao baixadas.
-    set "VIDEO_SUBTITLE_ARGS=--write-subs --write-auto-subs --sub-langs ""pt-BR,pt"" --sub-format ""srt/vtt/best"" --embed-subs"
+    set "VIDEO_SUBTITLE_ARGS=--write-subs --write-auto-subs --sub-langs pt-BR,pt --sub-format srt/vtt/best --embed-subs"
 ) else (
     echo [OK] Legendas nao serao baixadas.
     set "VIDEO_SUBTITLE_ARGS="
@@ -1013,9 +1013,9 @@ if /I "!OUTPUT_MODE!"=="PLAYLIST" (
 )
 
 if /I "!VIDEO_QUALITY!"=="best" (
-    set "VIDEO_FORMAT=-f ""bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"""
+    set VIDEO_FORMAT=-f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
 ) else (
-    set "VIDEO_FORMAT=-f ""bestvideo[ext=mp4][height<=!VIDEO_QUALITY!]+bestaudio[ext=m4a]/bestvideo[ext=mp4][height<=!VIDEO_QUALITY!]/bestvideo+bestaudio/best"""
+    set VIDEO_FORMAT=-f bestvideo[ext=mp4][height^<=!VIDEO_QUALITY!]+bestaudio[ext=m4a]/bestvideo[ext=mp4][height^<=!VIDEO_QUALITY!]/bestvideo+bestaudio/best
 )
 
 
@@ -1050,7 +1050,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     ) else (
 
@@ -1065,7 +1065,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     )
 
@@ -1098,7 +1098,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     ) else (
 
@@ -1113,7 +1113,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     )
 
@@ -1146,7 +1146,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     ) else (
 
@@ -1161,7 +1161,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     )
 
@@ -1191,7 +1191,7 @@ if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        "%URL%"
+        -- "%URL%"
 
 ) else (
 
@@ -1205,7 +1205,7 @@ if /I "!VIDEO_FINAL_FORMAT!"=="mp3" (
         --paths "home:%OUTPUT_VIDEO%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!VIDEO_OUTPUT!" ^
-        "%URL%"
+        -- "%URL%"
 
 )
 
@@ -1254,7 +1254,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
                     --paths "home:%OUTPUT_MUSIC%" ^
                     --paths "temp:%TEMP_YTDLP%" ^
                     -o "!MUSIC_OUTPUT!" ^
-                    "%URL%"
+                    -- "%URL%"
 
             ) else (
 
@@ -1269,7 +1269,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
                     --paths "home:%OUTPUT_VIDEO%" ^
                     --paths "temp:%TEMP_YTDLP%" ^
                     -o "!VIDEO_OUTPUT!" ^
-                    "%URL%"
+                    -- "%URL%"
 
             )
 
@@ -1295,7 +1295,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
                     --paths "home:%OUTPUT_MUSIC%" ^
                     --paths "temp:%TEMP_YTDLP%" ^
                     -o "!MUSIC_OUTPUT!" ^
-                    "%URL%"
+                    -- "%URL%"
 
             ) else (
 
@@ -1309,7 +1309,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
                     --paths "home:%OUTPUT_VIDEO%" ^
                     --paths "temp:%TEMP_YTDLP%" ^
                     -o "!VIDEO_OUTPUT!" ^
-                    "%URL%"
+                    -- "%URL%"
 
             )
 
@@ -1340,7 +1340,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     ) else (
 
@@ -1354,7 +1354,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
             --paths "home:%OUTPUT_VIDEO%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!VIDEO_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
     )
 
@@ -1421,7 +1421,7 @@ if /I "!COOKIE_MODE!"=="FILE" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        "%URL%"
+        -- "%URL%"
 
     set "RESULT=!ERRORLEVEL!"
 
@@ -1450,7 +1450,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        "%URL%"
+        -- "%URL%"
 
     set "RESULT=!ERRORLEVEL!"
 
@@ -1479,7 +1479,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        "%URL%"
+        -- "%URL%"
 
     set "RESULT=!ERRORLEVEL!"
 
@@ -1505,7 +1505,7 @@ REM ------------------------------------------------------------
     --paths "home:%OUTPUT_MUSIC%" ^
     --paths "temp:%TEMP_YTDLP%" ^
     -o "!MUSIC_OUTPUT!" ^
-    "%URL%"
+    -- "%URL%"
 
 set "RESULT=!ERRORLEVEL!"
 
@@ -1544,7 +1544,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
         set "RESULT=!ERRORLEVEL!"
     ) else (
@@ -1567,7 +1567,7 @@ if /I "!COOKIE_MODE!"=="BRAVE" (
             --paths "home:%OUTPUT_MUSIC%" ^
             --paths "temp:%TEMP_YTDLP%" ^
             -o "!MUSIC_OUTPUT!" ^
-            "%URL%"
+            -- "%URL%"
 
         set "RESULT=!ERRORLEVEL!"
     )
@@ -1593,7 +1593,7 @@ if /I "!COOKIE_MODE!"=="LOCAL" if "!RESULT!"=="1" (
         --paths "home:%OUTPUT_MUSIC%" ^
         --paths "temp:%TEMP_YTDLP%" ^
         -o "!MUSIC_OUTPUT!" ^
-        "%URL%"
+        -- "%URL%"
 
     set "RESULT=!ERRORLEVEL!"
 )
