@@ -1,0 +1,7 @@
+{
+  "deno.enable": true,
+  "deno.enablePaths": [
+    "./Musicas.ts"
+  ],
+  "deno.lint": true
+}
