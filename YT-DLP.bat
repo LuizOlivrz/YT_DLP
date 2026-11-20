@@ -71,8 +71,8 @@ REM Temporarios
 set "TEMP_YTDLP=%DOCS%\yt-dlp-temp"
 
 REM Saidas
-REM Salva ao lado do script por padrao.
-for %%I in ("%BASE%.") do set "OUTPUT_ROOT=%%~fI"
+REM Todos os downloads ficam juntos na pasta Downloads.
+set "OUTPUT_ROOT=%BASE%Downloads"
 set "OUTPUT_VIDEO=%OUTPUT_ROOT%"
 set "OUTPUT_MUSIC=%OUTPUT_ROOT%"
 
