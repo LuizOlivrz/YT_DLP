@@ -22,7 +22,7 @@ REM - Detecta playlist pelo parametro "list="
 REM - Permite playlist inteira ou video individual
 REM - Detecta categoria
 REM - Baixa musica como MP3
-REM - Baixa videos como MKV
+REM - Baixa videos em H.264/AVC + AAC para ampla compatibilidade
 REM - Legendas PT-BR/PT
 REM - Thumbnail e metadados em musicas
 REM
@@ -998,9 +998,9 @@ if /I "!OUTPUT_MODE!"=="PLAYLIST" (
 )
 
 if /I "!VIDEO_QUALITY!"=="best" (
-    set VIDEO_FORMAT=-f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+    set "VIDEO_FORMAT=-f bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4][vcodec^=avc1]"
 ) else (
-    set VIDEO_FORMAT=-f bestvideo[ext=mp4][height^<=!VIDEO_QUALITY!]+bestaudio[ext=m4a]/bestvideo[ext=mp4][height^<=!VIDEO_QUALITY!]/bestvideo+bestaudio/best
+    set "VIDEO_FORMAT=-f bestvideo[ext=mp4][vcodec^=avc1][height^<=!VIDEO_QUALITY!]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4][vcodec^=avc1][height^<=!VIDEO_QUALITY!]"
 )
 
 
