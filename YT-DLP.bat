@@ -69,7 +69,7 @@ set "TEMP_YTDLP=%DOCS%\yt-dlp-temp"
 
 REM Saidas
 REM Salva ao lado do script por padrao.
-set "OUTPUT_ROOT=%BASE%"
+set "OUTPUT_ROOT=%BASE:~0,-1%"
 set "OUTPUT_VIDEO=%OUTPUT_ROOT%"
 set "OUTPUT_MUSIC=%OUTPUT_ROOT%"
 
