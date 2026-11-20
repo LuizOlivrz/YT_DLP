@@ -842,10 +842,7 @@ if not exist "%DENO%" (
     --ytdlp "%YTDLP%" ^
     --ffmpeg "%FFMPEG_BIN%" ^
     --output "%OUTPUT_ROOT%" ^
-    --temp "%TEMP_YTDLP%" ^
-    --cookie-mode "!COOKIE_MODE!" ^
-    --browser "!LOCAL_BROWSER!" ^
-    --cookie-file "%COOKIE_FILE%"
+    --temp "%TEMP_YTDLP%"
 
 set "RESULT=!ERRORLEVEL!"
 
